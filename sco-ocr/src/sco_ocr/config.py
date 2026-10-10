@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_LAYOUT = Path(__file__).resolve().parents[2] / "config" / "layout.yaml"
-ROI_NAMES = ("led", "title", "meta", "status_text", "items", "total", "to_pay")
+ROI_NAMES = ("title", "meta", "status_text", "items", "total", "to_pay")
 
 
 class Settings(BaseSettings):
@@ -74,6 +74,8 @@ class ChangeCfg(BaseModel):
 class CorruptionCfg(BaseModel):
     blockiness_ratio: float = 1.6
     min_laplacian_var: float = 15.0
+    max_dark_fraction: float = 0.3
+    streak_ratio: float = 2.0
 
 
 class Layout(BaseModel):

@@ -44,11 +44,30 @@ def interior_detail(gray: np.ndarray, block: int = 8) -> float:
     return float(inner.var()) if inner.size else 0.0
 
 
+def streak_stats(gray: np.ndarray) -> tuple[float, float]:
+    """(fraction of dark pixels, horizontal/vertical gradient ratio).
+
+    The UI panels are light with sparse text; decode damage produces large dark
+    smears with strong vertical streaks. Independent of the codec block grid, so it
+    survives rescaling.
+    """
+    g = gray.astype(np.float32)
+    dark = float((g < 150).mean())
+    dx = np.abs(np.diff(g, axis=1)).mean()
+    dy = np.abs(np.diff(g, axis=0)).mean()
+    return dark, float(dx / max(dy, 1e-3))
+
+
 def is_corrupt_tile(tile: np.ndarray, cfg: CorruptionCfg) -> bool:
-    """Blocky AND smeared (little detail away from block seams). Tune on real frames."""
+    """Flag decode damage: (blocky AND smeared) OR (large dark smear with vertical streaks).
+
+    Pass the light content area of a tile (e.g. the items ROI), not the whole tile.
+    """
     gray = tile if tile.ndim == 2 else cv2.cvtColor(tile, cv2.COLOR_BGR2GRAY)
-    lap = interior_detail(gray)
-    return blockiness(gray) > cfg.blockiness_ratio and lap < cfg.min_laplacian_var
+    if blockiness(gray) > cfg.blockiness_ratio and interior_detail(gray) < cfg.min_laplacian_var:
+        return True
+    dark, ratio = streak_stats(gray)
+    return dark > cfg.max_dark_fraction and ratio > cfg.streak_ratio
 
 
 class RtspGrabber:

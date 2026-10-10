@@ -2,7 +2,7 @@
 
   python tools/calibrate.py reference.png
 
-Keys:  g = grid area mode   1-7 = led,title,meta,status_text,items,total,to_pay
+Keys:  g = grid area mode   1-6 = title,meta,status_text,items,total,to_pay
        drag with the mouse to (re)define the selected rectangle
        s = save config/layout.yaml     q/Esc = quit
  - grid mode: drag over the area holding all 15 tile slots (in video-area pixels)
@@ -90,7 +90,7 @@ def main() -> None:
         if k == ord("g"):
             state["mode"] = "grid"
             render()
-        elif ord("1") <= k <= ord("7"):
+        elif ord("1") <= k <= ord("6"):
             state["mode"] = ROI_NAMES[k - ord("1")]
             render()
         elif k == ord("s"):

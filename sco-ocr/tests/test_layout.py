@@ -4,13 +4,14 @@ from pydantic import ValidationError
 
 from sco_ocr.config import Layout, Rect, load_layout
 from sco_ocr.layout import FrameSplitter, detect_crop
-from tests.synthetic import BAR, H, W
+from tests.synthetic import BAR, VW, H, W
 
 
 def test_detect_crop_removes_black_bars(frame):
     box = detect_crop(frame)
     assert abs(box.x0 - BAR) <= 1 and abs(box.x1 - (W - BAR)) <= 1
     assert (box.y0, box.y1) == (0, H)
+    assert box.w == VW
 
 
 def test_crop_is_bounded_on_all_black_frame():
@@ -36,8 +37,8 @@ def test_tile_crops_have_expected_content(frame, layout):
     sp.calibrate(frame)
     tile3 = sp.tiles[2]
     rois = sp.roi_images(frame, tile3)
-    assert rois["items"].std() > 5  # has text
-    assert sp.roi_images(frame, sp.tiles[12])["items"].std() < 5  # unused: blank
+    blank = sp.roi_images(frame, sp.tiles[12])["items"]
+    assert rois["items"].std() > blank.std() + 5  # text adds variance over the empty panel
 
 
 def test_rect_validation():
@@ -47,7 +48,7 @@ def test_rect_validation():
 
 def test_layout_requires_all_rois():
     with pytest.raises(ValidationError):
-        Layout(rois={"led": Rect(x=0, y=0, w=0.1, h=0.1)})
+        Layout(rois={"title": Rect(x=0, y=0, w=0.1, h=0.1)})
 
 
 def test_default_layout_loads():
