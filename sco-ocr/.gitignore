@@ -1,0 +1,8 @@
+.env
+captures/
+*.mp4
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/

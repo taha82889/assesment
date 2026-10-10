@@ -1,0 +1,44 @@
+# All geometry is a fraction of its parent: tiles of the bar-cropped frame,
+# sub-ROIs of the tile. The values below are first guesses from the described
+# screen; run tools/calibrate.py against a real reference frame to fix them.
+grid:
+  cols: 5
+  rows: 3
+  bounds: {x: 0.0, y: 0.0, w: 1.0, h: 1.0}   # grid area inside the bar-cropped frame
+  unused: [12, 13, 14]                        # 0-based tile index; bottom-right three
+
+crop:
+  dark_threshold: 12     # mean intensity below this counts as black bar
+  min_fraction: 0.2      # never crop away more than this fraction per side... see layout.py
+
+rois:
+  led:         {x: 0.02, y: 0.03, w: 0.08, h: 0.10}
+  title:       {x: 0.11, y: 0.03, w: 0.25, h: 0.10}
+  meta:        {x: 0.40, y: 0.03, w: 0.58, h: 0.10}
+  status_text: {x: 0.02, y: 0.15, w: 0.96, h: 0.12}
+  items:       {x: 0.02, y: 0.29, w: 0.60, h: 0.50}
+  total:       {x: 0.02, y: 0.82, w: 0.45, h: 0.15}
+  to_pay:      {x: 0.50, y: 0.82, w: 0.48, h: 0.15}
+
+# Change detection (phase 4), tunable per ROI type.
+change:
+  stable_frames: 2
+  thresholds:        # mean abs diff on downscaled grayscale (0-255)
+    items: 4.0
+    total: 4.0
+    to_pay: 4.0
+    meta: 4.0
+
+corruption:
+  blockiness_ratio: 1.6    # boundary/interior gradient ratio above which a tile is blocky
+  min_laplacian_var: 15.0  # below this the tile is smeared/flat
+  # a tile is flagged when it is blocky AND smeared
+
+# Canonical status -> accepted texts (lowercase, matched with rapidfuzz in phase 3)
+status_vocabulary:
+  closed:     ["kassa gesloten", "caisse fermée"]
+  idle:       ["wachtend", "en attente"]
+  scanning:   ["bezig met scannen", "scan en cours"]
+  paying:     ["betaling bezig", "paiement en cours"]
+  ended:      ["transactie beëindigd", "transaction terminée"]
+  assistance: ["hulp nodig", "assistance requise"]
