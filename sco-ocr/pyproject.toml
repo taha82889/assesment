@@ -14,7 +14,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ocr = ["paddleocr", "paddlepaddle", "pytesseract"]
+ocr = ["rapidocr-onnxruntime", "pytesseract"]  # or: paddleocr + paddlepaddle
+ws = ["websockets"]
 gui = ["opencv-python"]  # replaces headless build; needed only for tools/calibrate.py
 dev = ["pytest", "ruff"]
 
@@ -27,6 +28,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["slow: runs real OCR on the local reference frame (~30s)"]
+addopts = "-m 'not slow'"
 pythonpath = ["src", "."]
 
 [tool.ruff]

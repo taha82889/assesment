@@ -68,7 +68,13 @@ class CropCfg(BaseModel):
 
 class ChangeCfg(BaseModel):
     stable_frames: int = 2
-    thresholds: dict[str, float] = {"items": 4.0, "total": 4.0, "to_pay": 4.0, "meta": 4.0}
+    thresholds: dict[str, float] = {
+        "items": 4.0,
+        "status_text": 4.0,
+        "total": 4.0,
+        "to_pay": 4.0,
+        "meta": 4.0,
+    }
 
 
 class CorruptionCfg(BaseModel):

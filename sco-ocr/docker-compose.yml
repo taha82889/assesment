@@ -10,6 +10,8 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
     depends_on: [redis]
-    profiles: ["app"]   # enabled once the pipeline exists: docker compose --profile app up
+    volumes: ["app-data:/data"]
+    restart: unless-stopped
 volumes:
   redis-data:
+  app-data:

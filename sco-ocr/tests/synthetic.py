@@ -17,6 +17,7 @@ W, H = VW + 2 * BAR, VH
 def make_frame(
     items_per_till: dict[int, list[tuple[str, str]]] | None = None,
     layout: Layout | None = None,
+    status: dict[int, str] | None = None,
 ) -> np.ndarray:
     from sco_ocr.layout import frac_box
 
@@ -48,7 +49,15 @@ def make_frame(
         b = boxes["meta"]
         cv2.putText(tile, f"# {till}  T: {7400 + till}", (b.x0, b.y1 - 2), 0, 0.35, (0, 0, 0), 1)
         b = boxes["status_text"]
-        cv2.putText(tile, "Bezig met scannen", (b.x0 + 4, b.y1 - 8), 0, 0.35, (0, 0, 0), 1)
+        cv2.putText(
+            tile,
+            (status or {}).get(till, "Bezig met scannen"),
+            (b.x0 + 4, b.y1 - 8),
+            0,
+            0.35,
+            (0, 0, 0),
+            1,
+        )
         b = boxes["items"]
         for k, (name, price) in enumerate(items_per_till.get(till, [])):
             y = b.y0 + 12 + k * 14

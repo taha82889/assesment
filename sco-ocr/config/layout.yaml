@@ -24,6 +24,7 @@ change:
   stable_frames: 2
   thresholds:        # mean abs diff on downscaled grayscale (0-255)
     items: 4.0
+    status_text: 4.0
     total: 4.0
     to_pay: 4.0
     meta: 4.0

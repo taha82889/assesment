@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "ItemModel": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "price": {
+          "title": "Price",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "price"
+      ],
+      "title": "ItemModel",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    },
+    "till": {
+      "title": "Till",
+      "type": "string"
+    },
+    "txn_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Txn Id"
+    },
+    "type": {
+      "enum": [
+        "transaction_started",
+        "item_added",
+        "item_removed",
+        "total_changed",
+        "status_changed",
+        "transaction_completed",
+        "till_offline",
+        "till_online",
+        "stream_degraded",
+        "stream_recovered"
+      ],
+      "title": "Type",
+      "type": "string"
+    },
+    "item": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ItemModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "total": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Total"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status"
+    },
+    "prev_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Prev Status"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "detail": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Detail"
+    }
+  },
+  "required": [
+    "id",
+    "till",
+    "type"
+  ],
+  "title": "Event",
+  "type": "object"
+}
