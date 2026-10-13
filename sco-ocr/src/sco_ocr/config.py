@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     sink: str = "stdout"
     fps: float = Field(3.0, gt=0, le=30)
     log_level: str = "INFO"
+    ocr_device: Literal["cpu", "cuda"] = "cpu"
     crop_retention: Literal["off", "lowconf", "all"] = "off"
     capture_dir: Path = Path("captures")
 

@@ -27,7 +27,7 @@ def run(s: Settings, layout_path: str | None, state_path: str) -> int:
     sinks = build_sinks(s)
     pipe = Pipeline(
         layout,
-        make_default_reader(layout),
+        make_default_reader(layout, device=s.ocr_device),
         sinks,
         JsonFileStore(state_path),
         archive=CropArchive(s.crop_retention, s.capture_dir),

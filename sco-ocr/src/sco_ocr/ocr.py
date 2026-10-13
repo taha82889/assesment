@@ -149,15 +149,56 @@ def segment_rows(
     return [(max(0, a - pad), min(g.shape[0], b + pad)) for a, b in rows if b - a >= min_height]
 
 
+def _rapidocr(device: str, use_det: bool):
+    """Build a RapidOCR instance with the angle classifier off (UI text is horizontal;
+    identical output, ~12% faster) and the requested execution device."""
+    import os
+    import tempfile
+
+    import rapidocr_onnxruntime as pkg
+    import yaml
+    from rapidocr_onnxruntime import RapidOCR
+
+    if device not in ("cpu", "cuda"):
+        raise ValueError(f"OCR device must be cpu or cuda, got {device!r}")
+    if device == "cuda":
+        import onnxruntime
+
+        if "CUDAExecutionProvider" not in onnxruntime.get_available_providers():
+            raise RuntimeError(
+                "OCR_DEVICE=cuda but onnxruntime has no CUDAExecutionProvider. "
+                "Install onnxruntime-gpu (and matching CUDA/cuDNN), not onnxruntime."
+            )
+    base = os.path.dirname(pkg.__file__)
+    with open(os.path.join(base, "config.yaml"), encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    cfg["Global"].update(use_angle_cls=False, use_text_det=use_det)
+    for key in ("Det", "Cls", "Rec"):
+        cfg[key]["model_path"] = os.path.join(base, cfg[key]["model_path"])
+        cfg[key]["use_cuda"] = device == "cuda"
+    if "rec_keys_path" in cfg["Rec"] and cfg["Rec"]["rec_keys_path"]:
+        cfg["Rec"]["rec_keys_path"] = os.path.join(base, cfg["Rec"]["rec_keys_path"])
+    if device == "cuda":
+        cfg["Rec"]["rec_batch_num"] = 16  # more rows per recogniser batch on GPU
+    with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as tmp:
+        yaml.safe_dump(cfg, tmp)
+    try:
+        return RapidOCR(config_path=tmp.name)
+    finally:
+        os.unlink(tmp.name)
+
+
 class RapidOcrEngine:
-    """PaddleOCR models served through onnxruntime (pip install rapidocr-onnxruntime)."""
+    """PaddleOCR (PP-OCR) models served through onnxruntime (pip install rapidocr-onnxruntime).
 
-    def __init__(self, mode: str = "gray", scale: int = 3):
-        from rapidocr_onnxruntime import RapidOCR  # lazy: heavy import
+    Currently PP-OCRv3 models (the version bundled with rapidocr-onnxruntime 1.2.x).
+    """
 
-        self._ocr, self.mode, self.scale = RapidOCR(), mode, scale
+    def __init__(self, mode: str = "gray", scale: int = 3, device: str = "cpu"):
+        self._ocr = _rapidocr(device, use_det=True)
+        self.mode, self.scale, self.device = mode, scale, device
         # recogniser-only instance: ~40x faster, only usable on tight single-line crops
-        self._line = RapidOCR(use_text_det=False, use_angle_cls=False)
+        self._line = _rapidocr(device, use_det=False)
 
     def read_line(self, img: np.ndarray) -> tuple[str, float]:
         result, _ = self._line(preprocess(img, self.scale, self.mode))
@@ -287,12 +328,14 @@ class TileReader:
         return best_v, best_c
 
 
-def make_default_reader(layout, templates_dir: str | None = None) -> TileReader:
+def make_default_reader(
+    layout, templates_dir: str | None = None, device: str = "cpu"
+) -> TileReader:
     """One grayscale RapidOCR engine for everything (Otsu hurt price reads on real frames)."""
     from .signals import StatusMatcher, StatusTemplates
 
     return TileReader(
-        RapidOcrEngine("gray"),
+        RapidOcrEngine("gray", device=device),
         StatusMatcher(layout.status_vocabulary),
         StatusTemplates(templates_dir) if templates_dir else None,
     )

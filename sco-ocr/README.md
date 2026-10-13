@@ -40,3 +40,11 @@ and consider a recogniser fine-tuned on this fixed UI font if the numbers stay s
 
 Latency: an OCR call costs ~0.3-0.6 s on 4 CPU cores; a change on one till triggers ~3 ROIs x 2 voting reads, so ~2-3 s.
 Idle screens cost ~0 OCR calls.
+
+## Edge device / GPU
+Set `OCR_DEVICE=cuda` and install `onnxruntime-gpu` (instead of `onnxruntime`) with matching CUDA/cuDNN. Startup fails
+loudly if the CUDA provider is missing; it never silently falls back to CPU. **The GPU path is untested** (no GPU in the
+development sandbox). CPU measurements: ~0.5 s per OCR call; the angle classifier is disabled (identical output, ~12% faster);
+lowering the 3x upscale is faster but changes the recognised text, so it is not done.
+Planned for speed on GPU: batch all changed ROI crops of a frame into one call, recogniser-only reads for fixed fields,
+PP-OCRv5 models, and ultimately a small recogniser trained on this screen's fixed font.
